@@ -9,51 +9,43 @@ interface SubComponent {
   components: string[];
 }
 
-const mockBreakdownData: Record<string, SubComponent[]> = {
-  default: [
-    {
-      name: "User System",
-      description: "Responsible for managing user profiles, authentication, and sessions.",
-      components: ["Auth", "Profile Storage", "Session Token", "Permissions"],
-    },
-    {
-      name: "Video System",
-      description: "Responsible for handling videos.",
-      components: ["Upload", "Storage", "Processing", "Thumbnail", "Video Player"],
-    },
-    {
-      name: "Search System",
-      description: "Responsible for indexing content and serving fast query results.",
-      components: ["Indexer", "Query Engine", "Filters", "Autocomplete"],
-    },
-    {
-      name: "Comment System",
-      description: "Responsible for discussion threads and user reactions.",
-      components: ["Post Comment", "Nested Replies", "Moderation API", "Likes"],
-    },
-    {
-      name: "Subscription System",
-      description: "Responsible for managing creator subscriptions and notifications.",
-      components: ["Subscriber DB", "Notification Trigger", "Billing Integration"],
-    },
-    {
-      name: "Recommendation System",
-      description: "Responsible for personalized content feeds.",
-      components: ["User Analytics", "ML Ranker", "Feed Generator"],
-    },
-  ],
-};
-
 export default function AnalyzePage() {
   const [platform, setPlatform] = useState("");
   const [analyzedPlatform, setAnalyzedPlatform] = useState<string | null>(null);
+  const [systems, setSystems] = useState<SubComponent[]>([]);
   const [selectedSystem, setSelectedSystem] = useState<SubComponent | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleAnalyze = (e: React.FormEvent) => {
+  const handleAnalyze = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (platform.trim()) {
+    if (!platform.trim()) return;
+
+    setLoading(true);
+    setError(null);
+    setAnalyzedPlatform(null);
+    setSystems([]);
+    setSelectedSystem(null);
+
+    try {
+      const res = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ platform }),
+      });
+
+      if (!res.ok) throw new Error("Failed to generate breakdown");
+
+      const data = await res.json();
+      setSystems(data.systems || []);
       setAnalyzedPlatform(platform);
-      setSelectedSystem(mockBreakdownData.default[1]); // Default to 'Video System'
+      if (data.systems && data.systems.length > 0) {
+        setSelectedSystem(data.systems[0]);
+      }
+    } catch (err: any) {
+      setError(err.message || "An error occurred");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -72,7 +64,7 @@ export default function AnalyzePage() {
             Analyze Existing Platform
           </h1>
           <p className="text-sm text-slate-400">
-            Enter the name of a platform or app you want to study.
+            Enter the name of a platform or app to generate a real-time AI breakdown.
           </p>
         </div>
 
@@ -85,7 +77,7 @@ export default function AnalyzePage() {
               type="text"
               value={platform}
               onChange={(e) => setPlatform(e.target.value)}
-              placeholder="e.g. YouTube"
+              placeholder="e.g. Spotify, Netflix, Twitter"
               className="w-full px-4 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
@@ -93,20 +85,27 @@ export default function AnalyzePage() {
 
           <button
             type="submit"
-            className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg transition-colors shadow-md"
+            disabled={loading}
+            className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 text-white font-semibold rounded-lg transition-colors shadow-md flex items-center justify-center"
           >
-            Analyze
+            {loading ? "Analyzing Platform..." : "Analyze"}
           </button>
         </form>
 
-        {analyzedPlatform && (
+        {error && (
+          <p className="text-sm text-red-400 bg-red-950/50 p-3 border border-red-800 rounded-lg">
+            {error}
+          </p>
+        )}
+
+        {analyzedPlatform && systems.length > 0 && (
           <div className="mt-8 space-y-6 border-t border-slate-800 pt-6">
             <h2 className="text-xl font-bold text-white">{analyzedPlatform}</h2>
 
             <div className="font-mono text-sm space-y-1 bg-slate-950 p-4 rounded-lg border border-slate-800">
               <p className="text-slate-400">|</p>
-              {mockBreakdownData.default.map((sys, idx) => {
-                const isLast = idx === mockBreakdownData.default.length - 1;
+              {systems.map((sys, idx) => {
+                const isLast = idx === systems.length - 1;
                 const isSelected = selectedSystem?.name === sys.name;
                 return (
                   <div key={sys.name} className="flex items-center">
