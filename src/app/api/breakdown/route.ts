@@ -7,63 +7,79 @@ export async function POST(request: Request) {
 
     if (!apiKey) {
       return NextResponse.json(
-        { error: "GEMINI_API_KEY is missing in .env.local" },
+        { error: "GEMINI_API_KEY missing in .env.local" },
         { status: 500 }
       );
     }
 
     const ai = new GoogleGenAI({ apiKey });
-    const body = await request.json();
-    const { componentName, action } = body;
+    const { componentName, action } = await request.json();
 
-    if (!componentName) {
-      return NextResponse.json(
-        { error: "Component name is required" },
-        { status: 400 }
-      );
-    }
-
-    const prompt = `Provide a clear structural explanation for the component "${componentName}". Detail what it is, why it is needed, the step-by-step workflow, difficulty level, and key prerequisites.`;
-
-    const response = await ai.models.generateContent({
-      model: "gemini-3.6-flash",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            title: { type: Type.STRING },
-            whatIsIt: { type: Type.STRING },
-            whyDoWeNeedIt: { type: Type.STRING },
-            howDoesItWork: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING },
+    // Branch logic based on button action type
+    if (action === "show_code") {
+      const response = await ai.models.generateContent({
+        model: "gemini-3.6-flash",
+        contents: `Provide practical code implementation steps for the system component: "${componentName}". Show actual production-grade code snippets for each step.`,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              steps: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    stepNumber: { type: Type.NUMBER },
+                    title: { type: Type.STRING },
+                    explanation: { type: Type.STRING },
+                    code: { type: Type.STRING },
+                  },
+                  required: ["stepNumber", "title", "explanation", "code"],
+                },
+              },
             },
-            difficulty: { type: Type.STRING },
-            prerequisites: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING },
-            },
+            required: ["steps"],
           },
-          required: [
-            "title",
-            "whatIsIt",
-            "whyDoWeNeedIt",
-            "howDoesItWork",
-            "difficulty",
-            "prerequisites",
-          ],
         },
-      },
-    });
+      });
 
-    const data = JSON.parse(response.text || "{}");
-    return NextResponse.json({ success: true, data });
+      const data = JSON.parse(response.text || "{}");
+      return NextResponse.json({ success: true, data });
+    } else {
+      // Default: "explain", "breakdown", or "next_step"
+      const response = await ai.models.generateContent({
+        model: "gemini-3.6-flash",
+        contents: `Provide a detailed explanation and breakdown for the system component: "${componentName}".`,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              whatIsIt: { type: Type.STRING },
+              whyDoWeNeedIt: { type: Type.STRING },
+              howDoesItWork: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING },
+              },
+              difficulty: { type: Type.STRING },
+              prerequisites: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING },
+              },
+            },
+            required: ["whatIsIt", "whyDoWeNeedIt", "howDoesItWork"],
+          },
+        },
+      });
+
+      const data = JSON.parse(response.text || "{}");
+      return NextResponse.json({ success: true, data });
+    }
   } catch (error: any) {
-    console.error("Explanation API Error:", error);
+    console.error("Breakdown API Error:", error);
     return NextResponse.json(
-      { error: error?.message || "Failed to generate explanation" },
+      { error: error?.message || "Failed to generate breakdown" },
       { status: 500 }
     );
   }

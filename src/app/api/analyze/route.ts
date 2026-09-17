@@ -1,10 +1,5 @@
 import { NextResponse } from "next/server";
 import { GoogleGenAI, Type } from "@google/genai";
-import { SYSTEM_PROMPT } from "@/lib/prompts";
-
-export async function GET() {
-  return NextResponse.json({ message: "API route is working!" });
-}
 
 export async function POST(request: Request) {
   try {
@@ -12,28 +7,18 @@ export async function POST(request: Request) {
 
     if (!apiKey) {
       return NextResponse.json(
-        { error: "GEMINI_API_KEY is not defined in .env.local" },
+        { error: "GEMINI_API_KEY missing in .env.local" },
         { status: 500 }
       );
     }
 
     const ai = new GoogleGenAI({ apiKey });
-
-    const body = await request.json();
-    const { project } = body;
-
-    if (!project) {
-      return NextResponse.json(
-        { error: "Project name is required" },
-        { status: 400 }
-      );
-    }
+    const { project } = await request.json();
 
     const response = await ai.models.generateContent({
       model: "gemini-3.6-flash",
-      contents: `Analyze this project idea: ${project}`,
+      contents: `Break down the software architecture for this project: ${project}`,
       config: {
-        systemInstruction: SYSTEM_PROMPT,
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
@@ -58,20 +43,8 @@ export async function POST(request: Request) {
                           type: Type.ARRAY,
                           items: { type: Type.STRING },
                         },
-                        steps: {
-                          type: Type.ARRAY,
-                          items: {
-                            type: Type.OBJECT,
-                            properties: {
-                              title: { type: Type.STRING },
-                              explanation: { type: Type.STRING },
-                              code: { type: Type.STRING },
-                            },
-                            required: ["title", "explanation"],
-                          },
-                        },
                       },
-                      required: ["name", "explanation", "technologies", "steps"],
+                      required: ["name", "explanation", "technologies"],
                     },
                   },
                 },
@@ -84,16 +57,12 @@ export async function POST(request: Request) {
       },
     });
 
-    const projectData = JSON.parse(response.text || "{}");
-
-    return NextResponse.json({
-      success: true,
-      data: projectData,
-    });
+    const data = JSON.parse(response.text || "{}");
+    return NextResponse.json({ success: true, data });
   } catch (error: any) {
-    console.error("API Error:", error);
+    console.error("Analyze API Error:", error);
     return NextResponse.json(
-      { error: error?.message || "Failed to generate project structure" },
+      { error: error?.message || "Failed to analyze project" },
       { status: 500 }
     );
   }

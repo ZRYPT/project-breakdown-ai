@@ -11,7 +11,7 @@ export default function Home() {
   const [actionResults, setActionResults] = useState<{ [key: string]: any }>({});
 
   const handleAnalyze = async () => {
-    if (!projectInput) return;
+    if (!projectInput.trim()) return;
     setLoading(true);
     try {
       const res = await fetch("/api/analyze", {
@@ -19,12 +19,18 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ project: projectInput }),
       });
+
       const data = await res.json();
-      if (data.success) {
+      console.log("Analyze API Response:", data);
+
+      if (data.success && data.data) {
         setProjectData(data.data);
+      } else {
+        alert(`API Error: ${data.error || "Failed to analyze project"}`);
       }
     } catch (err) {
-      console.error(err);
+      console.error("Fetch Error:", err);
+      alert("Network request failed. Check terminal console.");
     } finally {
       setLoading(false);
     }
@@ -65,7 +71,7 @@ export default function Home() {
           <button
             onClick={handleAnalyze}
             disabled={loading}
-            className="bg-blue-600 hover:bg-blue-500 px-6 py-2 rounded-lg font-medium transition"
+            className="bg-blue-600 hover:bg-blue-500 px-6 py-2 rounded-lg font-medium transition disabled:opacity-50"
           >
             {loading ? "Analyzing..." : "Analyze"}
           </button>
@@ -73,7 +79,7 @@ export default function Home() {
 
         {projectData && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-blue-400">{projectData.name}</h2>
+            <h2 className="text-2xl font-bold text-blue-400">{projectData.name || "Project Architecture"}</h2>
             <p className="text-slate-300">{projectData.description}</p>
 
             {projectData.systems?.map((sys: any, sysIdx: number) => (
@@ -96,19 +102,6 @@ export default function Home() {
                           </span>
                         ))}
                       </div>
-
-                      {/* Code Steps */}
-                      {comp.steps?.map((step: any, sIdx: number) => (
-                        <div key={sIdx} className="mt-3">
-                          <h5 className="text-xs font-semibold text-slate-200">{step.title}</h5>
-                          <p className="text-xs text-slate-400 mb-1">{step.explanation}</p>
-                          {step.code && (
-                            <pre className="bg-slate-900 text-green-400 text-xs p-3 rounded overflow-x-auto border border-slate-800">
-                              <code>{step.code}</code>
-                            </pre>
-                          )}
-                        </div>
-                      ))}
 
                       {/* Action Buttons */}
                       <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-slate-800">
@@ -147,62 +140,83 @@ export default function Home() {
                         <p className="text-xs text-blue-400 animate-pulse mt-2">Generating breakdown details...</p>
                       )}
 
-                      {/* Phase 14 Explanation Output Card */}
+                      {/* Action Output Block */}
                       {actionResults[comp.name] && !actionLoading[comp.name] && (
                         <div className="mt-4 p-4 bg-slate-900 border border-slate-800 rounded-lg space-y-4 text-slate-200">
+                          
+                          {/* Phase 14 Explanation Output */}
                           {actionResults[comp.name].whatIsIt && (
-                            <div>
-                              <h5 className="font-bold text-slate-100 text-sm mb-1">What is it?</h5>
-                              <p className="text-xs text-slate-300">{actionResults[comp.name].whatIsIt}</p>
-                            </div>
-                          )}
-
-                          {actionResults[comp.name].whyDoWeNeedIt && (
-                            <div>
-                              <h5 className="font-bold text-slate-100 text-sm mb-1">Why do we need it?</h5>
-                              <p className="text-xs text-slate-300">{actionResults[comp.name].whyDoWeNeedIt}</p>
-                            </div>
-                          )}
-
-                          {actionResults[comp.name].howDoesItWork?.length > 0 && (
-                            <div>
-                              <h5 className="font-bold text-slate-100 text-sm mb-1">How does it work?</h5>
-                              <ol className="list-decimal list-inside text-xs text-slate-300 space-y-1">
-                                {actionResults[comp.name].howDoesItWork.map((step: string, idx: number) => (
-                                  <li key={idx}>{step.replace(/^\d+\.\s*/, "")}</li>
-                                ))}
-                              </ol>
-                            </div>
-                          )}
-
-                          {/* Metadata Box */}
-                          <div className="pt-3 border-t border-slate-800 text-xs text-slate-400 space-y-1">
-                            {actionResults[comp.name].difficulty && (
-                              <p><strong className="text-slate-200">Difficulty:</strong> {actionResults[comp.name].difficulty}</p>
-                            )}
-                            {actionResults[comp.name].prerequisites?.length > 0 && (
+                            <div className="space-y-3">
                               <div>
-                                <strong className="text-slate-200">Prerequisites:</strong>
-                                <ul className="list-disc list-inside ml-2">
-                                  {actionResults[comp.name].prerequisites.map((item: string, idx: number) => (
-                                    <li key={idx}>{item}</li>
-                                  ))}
-                                </ul>
+                                <h5 className="font-bold text-slate-100 text-sm mb-1">What is it?</h5>
+                                <p className="text-xs text-slate-300">{actionResults[comp.name].whatIsIt}</p>
                               </div>
-                            )}
-                          </div>
-
-                          {/* Follow-up input */}
-                          <div className="pt-2">
-                            <div className="flex items-center bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-xs text-slate-400 focus-within:border-blue-500">
-                              <span className="mr-2 text-slate-500">+</span>
-                              <input
-                                type="text"
-                                placeholder="Ask anything"
-                                className="bg-transparent flex-1 text-slate-200 focus:outline-none"
-                              />
+                              {actionResults[comp.name].whyDoWeNeedIt && (
+                                <div>
+                                  <h5 className="font-bold text-slate-100 text-sm mb-1">Why do we need it?</h5>
+                                  <p className="text-xs text-slate-300">{actionResults[comp.name].whyDoWeNeedIt}</p>
+                                </div>
+                              )}
+                              {actionResults[comp.name].howDoesItWork?.length > 0 && (
+                                <div>
+                                  <h5 className="font-bold text-slate-100 text-sm mb-1">How does it work?</h5>
+                                  <ol className="list-decimal list-inside text-xs text-slate-300 space-y-1">
+                                    {actionResults[comp.name].howDoesItWork.map((step: string, idx: number) => (
+                                      <li key={idx}>{step.replace(/^\d+\.\s*/, "")}</li>
+                                    ))}
+                                  </ol>
+                                </div>
+                              )}
+                              <div className="pt-3 border-t border-slate-800 text-xs text-slate-400 space-y-1">
+                                {actionResults[comp.name].difficulty && (
+                                  <p><strong className="text-slate-200">Difficulty:</strong> {actionResults[comp.name].difficulty}</p>
+                                )}
+                                {actionResults[comp.name].prerequisites?.length > 0 && (
+                                  <div>
+                                    <strong className="text-slate-200">Prerequisites:</strong>
+                                    <ul className="list-disc list-inside ml-2">
+                                      {actionResults[comp.name].prerequisites.map((item: string, idx: number) => (
+                                        <li key={idx}>{item}</li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          </div>
+                          )}
+
+                          {/* Phase 15 Show Code Output */}
+                          {actionResults[comp.name].steps?.length > 0 && (
+                            <div className="space-y-6">
+                              {actionResults[comp.name].steps.map((step: any, sIdx: number) => (
+                                <div key={sIdx} className="space-y-2">
+                                  <div className="text-xs font-bold text-slate-300 uppercase tracking-wide">
+                                    STEP {step.stepNumber || sIdx + 1}
+                                  </div>
+                                  <p className="text-xs font-medium text-slate-200">{step.title}</p>
+                                  {step.explanation && (
+                                    <p className="text-xs text-slate-400">{step.explanation}</p>
+                                  )}
+                                  <pre className="bg-slate-950 text-emerald-400 text-xs p-3 rounded overflow-x-auto border border-slate-800 font-mono">
+                                    <code>{step.code}</code>
+                                  </pre>
+                                  {sIdx < actionResults[comp.name].steps.length - 1 && (
+                                    <div className="text-center text-slate-600 text-sm py-1">↓</div>
+                                  )}
+                                </div>
+                              ))}
+
+                              <div className="pt-4 border-t border-slate-800 space-y-2">
+                                <button
+                                  onClick={() => handleComponentAction(comp.name, "explain")}
+                                  className="w-full text-center text-xs text-slate-400 hover:text-slate-200 bg-slate-950 hover:bg-slate-800 border border-slate-800 py-2 rounded-md transition"
+                                >
+                                  Explain this code
+                                </button>
+                              </div>
+                            </div>
+                          )}
+
                         </div>
                       )}
                     </div>
