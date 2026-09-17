@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
     const response = await ai.models.generateContent({
       model: "gemini-3.6-flash",
-      contents: `Analyze the following project idea and provide a comprehensive software architecture breakdown including systems, components, technologies, educational difficulty, prerequisites, estimated learning time, and a sequential development roadmap: "${project}".`,
+      contents: `Analyze the following project idea and provide a comprehensive software architecture breakdown including systems, components, educational metrics, a sequential development roadmap, and categorized technology recommendations with explanations: "${project}".`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -32,6 +32,18 @@ export async function POST(request: Request) {
           properties: {
             name: { type: Type.STRING },
             description: { type: Type.STRING },
+            technologyRecommendations: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  category: { type: Type.STRING }, // e.g. "Frontend", "Backend", "Database"
+                  technology: { type: Type.STRING }, // e.g. "Next.js"
+                  reason: { type: Type.STRING }, // Why it is recommended
+                },
+                required: ["category", "technology", "reason"],
+              },
+            },
             systems: {
               type: Type.ARRAY,
               items: {
@@ -50,7 +62,7 @@ export async function POST(request: Request) {
                           type: Type.ARRAY,
                           items: { type: Type.STRING },
                         },
-                        difficulty: { type: Type.STRING }, // e.g. "★★★★☆" or "Medium"
+                        difficulty: { type: Type.STRING },
                         prerequisites: {
                           type: Type.ARRAY,
                           items: { type: Type.STRING },
@@ -84,7 +96,13 @@ export async function POST(request: Request) {
               },
             },
           },
-          required: ["name", "description", "systems", "developmentRoadmap"],
+          required: [
+            "name",
+            "description",
+            "technologyRecommendations",
+            "systems",
+            "developmentRoadmap",
+          ],
         },
       },
     });

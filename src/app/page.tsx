@@ -80,6 +80,28 @@ export default function Home() {
             <h2 className="text-2xl font-bold text-blue-400">{projectData.name || "Architecture Overview"}</h2>
             <p className="text-slate-300">{projectData.description}</p>
 
+            {/* Phase 19: Technology Recommendations Section */}
+            {projectData.technologyRecommendations && projectData.technologyRecommendations.length > 0 && (
+              <div className="bg-slate-900 border border-slate-800 rounded-lg p-5 space-y-4">
+                <h3 className="text-lg font-bold text-emerald-400">Recommended Technology Stack</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {projectData.technologyRecommendations.map((rec: any, idx: number) => (
+                    <div key={idx} className="bg-slate-950 border border-slate-800 rounded p-3 space-y-1">
+                      <div className="text-xs uppercase font-semibold text-slate-400 tracking-wider">
+                        {rec.category}
+                      </div>
+                      <div className="text-sm font-bold text-blue-400">
+                        → {rec.technology}
+                      </div>
+                      <p className="text-xs text-slate-300 pt-1">
+                        {rec.reason}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Systems & Components Loop */}
             {projectData.systems?.map((sys: any, sysIdx: number) => (
               <details key={sysIdx} open className="bg-slate-900 border border-slate-800 rounded-lg p-4 mb-4">
@@ -101,7 +123,7 @@ export default function Home() {
                         ))}
                       </div>
 
-                      {/* Phase 18: Difficulty, Prerequisites & Learning Time */}
+                      {/* Difficulty, Prerequisites & Learning Time */}
                       <div className="mt-4 pt-3 border-t border-slate-800 space-y-2 text-xs bg-slate-900/50 p-3 rounded">
                         {comp.difficulty && (
                           <div className="flex items-center gap-2">
