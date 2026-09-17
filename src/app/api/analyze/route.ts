@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { SYSTEM_PROMPT } from "@/lib/prompts";
+import { ProjectBreakdown } from "@/types/project";
 
 export async function GET() {
   return NextResponse.json({ message: "API route is working!" });
@@ -17,7 +18,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // SYSTEM_PROMPT is imported and ready for the AI call
     return NextResponse.json({
       success: true,
       message: `Analyzing project: ${project}`,
