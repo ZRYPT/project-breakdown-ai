@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
     const response = await ai.models.generateContent({
       model: "gemini-3.6-flash",
-      contents: `Analyze the following project idea and provide a comprehensive software architecture breakdown including systems, components, educational metrics, development roadmap, technology recommendations, Supabase architecture, and an account/dashboard workflow featuring sample user projects with completion progress: "${project}".`,
+      contents: `Analyze the following project idea and provide a comprehensive software architecture breakdown including UI tree structure, systems, components, educational metrics, development roadmap, technology recommendations, Supabase architecture, account workflow, and progress tracking checklist: "${project}".`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -32,12 +32,52 @@ export async function POST(request: Request) {
           properties: {
             name: { type: Type.STRING },
             description: { type: Type.STRING },
+            uiLayout: {
+              type: Type.OBJECT,
+              properties: {
+                treeTitle: { type: Type.STRING }, // e.g. "PROJECT TREE"
+                systems: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      name: { type: Type.STRING },
+                      components: {
+                        type: Type.ARRAY,
+                        items: { type: Type.STRING },
+                      },
+                    },
+                    required: ["name", "components"],
+                  },
+                },
+              },
+              required: ["treeTitle", "systems"],
+            },
+            progressTracking: {
+              type: Type.OBJECT,
+              properties: {
+                description: { type: Type.STRING },
+                tasks: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      title: { type: Type.STRING },
+                      completed: { type: Type.BOOLEAN },
+                    },
+                    required: ["title", "completed"],
+                  },
+                },
+                platformFeel: { type: Type.STRING },
+              },
+              required: ["description", "tasks", "platformFeel"],
+            },
             accountAndDashboard: {
               type: Type.OBJECT,
               properties: {
                 flow: {
                   type: Type.ARRAY,
-                  items: { type: Type.STRING }, // e.g. ["Sign Up", "Log In", "Dashboard", "My Projects", "Project Breakdown"]
+                  items: { type: Type.STRING },
                 },
                 sampleProjects: {
                   type: Type.ARRAY,
@@ -45,7 +85,7 @@ export async function POST(request: Request) {
                     type: Type.OBJECT,
                     properties: {
                       title: { type: Type.STRING },
-                      progress: { type: Type.STRING }, // e.g. "42% complete"
+                      progress: { type: Type.STRING },
                     },
                     required: ["title", "progress"],
                   },
@@ -135,6 +175,8 @@ export async function POST(request: Request) {
           required: [
             "name",
             "description",
+            "uiLayout",
+            "progressTracking",
             "accountAndDashboard",
             "supabaseArchitecture",
             "technologyRecommendations",
