@@ -23,36 +23,37 @@ export async function POST(request: Request) {
       );
     }
 
-    let actionPrompt = "";
-    if (action === "breakdown") {
-      actionPrompt = `Break down the system component "${componentName}" into a list of smaller sub-components and nested subsystems.`;
-    } else if (action === "explain") {
-      actionPrompt = `Provide a detailed architectural explanation of how "${componentName}" works.`;
-    } else if (action === "show_code") {
-      actionPrompt = `Provide production-ready sample code and setup details for "${componentName}".`;
-    } else if (action === "next_step") {
-      actionPrompt = `Provide clear execution steps and implementation roadmap for building "${componentName}".`;
-    } else {
-      actionPrompt = `Explain and detail the component "${componentName}".`;
-    }
+    const prompt = `Provide a clear structural explanation for the component "${componentName}". Detail what it is, why it is needed, the step-by-step workflow, difficulty level, and key prerequisites.`;
 
     const response = await ai.models.generateContent({
       model: "gemini-3.6-flash",
-      contents: actionPrompt,
+      contents: prompt,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
           properties: {
             title: { type: Type.STRING },
-            details: { type: Type.STRING },
-            subComponents: {
+            whatIsIt: { type: Type.STRING },
+            whyDoWeNeedIt: { type: Type.STRING },
+            howDoesItWork: {
               type: Type.ARRAY,
               items: { type: Type.STRING },
             },
-            codeSnippet: { type: Type.STRING },
+            difficulty: { type: Type.STRING },
+            prerequisites: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING },
+            },
           },
-          required: ["title", "details", "subComponents"],
+          required: [
+            "title",
+            "whatIsIt",
+            "whyDoWeNeedIt",
+            "howDoesItWork",
+            "difficulty",
+            "prerequisites",
+          ],
         },
       },
     });
@@ -60,9 +61,9 @@ export async function POST(request: Request) {
     const data = JSON.parse(response.text || "{}");
     return NextResponse.json({ success: true, data });
   } catch (error: any) {
-    console.error("Breakdown API Error:", error);
+    console.error("Explanation API Error:", error);
     return NextResponse.json(
-      { error: error?.message || "Failed to generate component breakdown" },
+      { error: error?.message || "Failed to generate explanation" },
       { status: 500 }
     );
   }

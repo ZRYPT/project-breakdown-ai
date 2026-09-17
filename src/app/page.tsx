@@ -7,7 +7,6 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [projectData, setProjectData] = useState<any>(null);
 
-  // Track actions per component by storing state keyed by component name
   const [actionLoading, setActionLoading] = useState<{ [key: string]: boolean }>({});
   const [actionResults, setActionResults] = useState<{ [key: string]: any }>({});
 
@@ -78,7 +77,7 @@ export default function Home() {
             <p className="text-slate-300">{projectData.description}</p>
 
             {projectData.systems?.map((sys: any, sysIdx: number) => (
-              <details key={sysIdx} open className="bg-slate-900 border border-slate-800 rounded-lg p-4">
+              <details key={sysIdx} open className="bg-slate-900 border border-slate-800 rounded-lg p-4 mb-4">
                 <summary className="cursor-pointer font-bold text-lg text-emerald-400">
                   {sys.name} <span className="text-slate-400 text-sm font-normal">- {sys.description}</span>
                 </summary>
@@ -148,19 +147,62 @@ export default function Home() {
                         <p className="text-xs text-blue-400 animate-pulse mt-2">Generating breakdown details...</p>
                       )}
 
-                      {/* Sub-Action Result */}
+                      {/* Phase 14 Explanation Output Card */}
                       {actionResults[comp.name] && !actionLoading[comp.name] && (
-                        <div className="mt-3 p-3 bg-slate-900 border border-slate-800 rounded">
-                          <h5 className="font-semibold text-xs text-green-400">{actionResults[comp.name].title}</h5>
-                          <p className="text-xs text-slate-300 my-1">{actionResults[comp.name].details}</p>
-
-                          {actionResults[comp.name].subComponents?.length > 0 && (
-                            <ul className="list-disc list-inside space-y-1 text-xs text-slate-400 mt-2">
-                              {actionResults[comp.name].subComponents.map((sub: string, idx: number) => (
-                                <li key={idx}>{sub}</li>
-                              ))}
-                            </ul>
+                        <div className="mt-4 p-4 bg-slate-900 border border-slate-800 rounded-lg space-y-4 text-slate-200">
+                          {actionResults[comp.name].whatIsIt && (
+                            <div>
+                              <h5 className="font-bold text-slate-100 text-sm mb-1">What is it?</h5>
+                              <p className="text-xs text-slate-300">{actionResults[comp.name].whatIsIt}</p>
+                            </div>
                           )}
+
+                          {actionResults[comp.name].whyDoWeNeedIt && (
+                            <div>
+                              <h5 className="font-bold text-slate-100 text-sm mb-1">Why do we need it?</h5>
+                              <p className="text-xs text-slate-300">{actionResults[comp.name].whyDoWeNeedIt}</p>
+                            </div>
+                          )}
+
+                          {actionResults[comp.name].howDoesItWork?.length > 0 && (
+                            <div>
+                              <h5 className="font-bold text-slate-100 text-sm mb-1">How does it work?</h5>
+                              <ol className="list-decimal list-inside text-xs text-slate-300 space-y-1">
+                                {actionResults[comp.name].howDoesItWork.map((step: string, idx: number) => (
+                                  <li key={idx}>{step.replace(/^\d+\.\s*/, "")}</li>
+                                ))}
+                              </ol>
+                            </div>
+                          )}
+
+                          {/* Metadata Box */}
+                          <div className="pt-3 border-t border-slate-800 text-xs text-slate-400 space-y-1">
+                            {actionResults[comp.name].difficulty && (
+                              <p><strong className="text-slate-200">Difficulty:</strong> {actionResults[comp.name].difficulty}</p>
+                            )}
+                            {actionResults[comp.name].prerequisites?.length > 0 && (
+                              <div>
+                                <strong className="text-slate-200">Prerequisites:</strong>
+                                <ul className="list-disc list-inside ml-2">
+                                  {actionResults[comp.name].prerequisites.map((item: string, idx: number) => (
+                                    <li key={idx}>{item}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Follow-up input */}
+                          <div className="pt-2">
+                            <div className="flex items-center bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-xs text-slate-400 focus-within:border-blue-500">
+                              <span className="mr-2 text-slate-500">+</span>
+                              <input
+                                type="text"
+                                placeholder="Ask anything"
+                                className="bg-transparent flex-1 text-slate-200 focus:outline-none"
+                              />
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>
