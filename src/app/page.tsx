@@ -1,118 +1,176 @@
 "use client";
 
 import { useState } from "react";
-import { ProjectBreakdown } from "@/types/project";
 
 export default function Home() {
   const [projectInput, setProjectInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<ProjectBreakdown | null>(null);
+  const [projectData, setProjectData] = useState<any>(null);
 
-  const handleAnalyze = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Track actions per component by storing state keyed by component name
+  const [actionLoading, setActionLoading] = useState<{ [key: string]: boolean }>({});
+  const [actionResults, setActionResults] = useState<{ [key: string]: any }>({});
+
+  const handleAnalyze = async () => {
     if (!projectInput) return;
-
     setLoading(true);
-    setError(null);
-    setResult(null);
-
     try {
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ project: projectInput }),
       });
-
       const data = await res.json();
       if (data.success) {
-        setResult(data.data);
-      } else {
-        setError(data.error || "Failed to fetch response");
+        setProjectData(data.data);
       }
-    } catch (err: any) {
-      setError(err?.message || "Something went wrong");
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleComponentAction = async (componentName: string, actionType: string) => {
+    setActionLoading((prev) => ({ ...prev, [componentName]: true }));
+    try {
+      const res = await fetch("/api/breakdown", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ componentName, action: actionType }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setActionResults((prev) => ({ ...prev, [componentName]: data.data }));
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setActionLoading((prev) => ({ ...prev, [componentName]: false }));
+    }
+  };
+
   return (
-    <main className="max-w-4xl mx-auto p-6 space-y-8 min-h-screen text-white">
-      <h1 className="text-3xl font-bold text-center">Project Breakdown Generator</h1>
-
-      <form onSubmit={handleAnalyze} className="flex gap-4 max-w-xl mx-auto">
-        <input
-          type="text"
-          value={projectInput}
-          onChange={(e) => setProjectInput(e.target.value)}
-          placeholder="Enter a project (e.g., YouTube)"
-          className="flex-1 p-3 border border-gray-600 rounded-md bg-white text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-md disabled:bg-gray-500 transition-colors"
-        >
-          {loading ? "Analyzing..." : "Analyze"}
-        </button>
-      </form>
-
-      {error && (
-        <div className="p-4 bg-red-900/50 border border-red-500 rounded-md text-red-200 text-center">
-          {error}
+    <main className="min-h-screen bg-slate-950 text-slate-100 p-8">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-3xl font-bold text-center mb-6">Project Breakdown Generator</h1>
+        
+        <div className="flex gap-3 mb-8">
+          <input
+            type="text"
+            value={projectInput}
+            onChange={(e) => setProjectInput(e.target.value)}
+            placeholder="Enter project idea..."
+            className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-slate-100 focus:outline-none focus:border-blue-500"
+          />
+          <button
+            onClick={handleAnalyze}
+            disabled={loading}
+            className="bg-blue-600 hover:bg-blue-500 px-6 py-2 rounded-lg font-medium transition"
+          >
+            {loading ? "Analyzing..." : "Analyze"}
+          </button>
         </div>
-      )}
 
-      {result && (
-        <div className="space-y-6 border border-gray-700 p-6 rounded-lg bg-gray-900 shadow-lg">
-          <div>
-            <h2 className="text-2xl font-bold text-blue-400">{result.name}</h2>
-            <p className="text-gray-300 mt-1">{result.description}</p>
-          </div>
+        {projectData && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-blue-400">{projectData.name}</h2>
+            <p className="text-slate-300">{projectData.description}</p>
 
-          <div className="space-y-4">
-            {result.systems.map((sys, idx) => (
-              <details key={idx} open className="border-l-2 border-blue-500 pl-4 py-2">
-                <summary className="font-semibold text-lg cursor-pointer text-blue-300">
-                  {sys.name} - <span className="text-sm font-normal text-gray-400">{sys.description}</span>
+            {projectData.systems?.map((sys: any, sysIdx: number) => (
+              <details key={sysIdx} open className="bg-slate-900 border border-slate-800 rounded-lg p-4">
+                <summary className="cursor-pointer font-bold text-lg text-emerald-400">
+                  {sys.name} <span className="text-slate-400 text-sm font-normal">- {sys.description}</span>
                 </summary>
-                
-                <div className="mt-3 ml-4 space-y-4">
-                  {sys.components.map((comp, cIdx) => (
-                    <div key={cIdx} className="bg-gray-800 p-4 rounded-md space-y-2 border border-gray-700">
-                      <h4 className="font-bold text-yellow-400 text-base">{comp.name}</h4>
-                      <p className="text-sm text-gray-300">{comp.explanation}</p>
-                      
-                      <div className="flex gap-2 flex-wrap text-xs pt-1">
-                        {comp.technologies.map((tech, tIdx) => (
-                          <span key={tIdx} className="bg-blue-950 text-blue-300 border border-blue-800 px-2 py-1 rounded">
+
+                <div className="mt-4 space-y-4">
+                  {sys.components?.map((comp: any, compIdx: number) => (
+                    <div key={compIdx} className="bg-slate-950 border border-slate-800 rounded-lg p-4">
+                      <h4 className="text-md font-bold text-amber-400">{comp.name}</h4>
+                      <p className="text-xs text-slate-300 my-1">{comp.explanation}</p>
+
+                      {/* Tech Tags */}
+                      <div className="flex flex-wrap gap-2 my-2">
+                        {comp.technologies?.map((tech: string, tIdx: number) => (
+                          <span key={tIdx} className="bg-slate-800 text-blue-300 text-xs px-2 py-0.5 rounded">
                             {tech}
                           </span>
                         ))}
                       </div>
 
-                      <div className="mt-3 space-y-2">
-                        {comp.steps.map((step, sIdx) => (
-                          <div key={sIdx} className="text-xs bg-gray-700/60 p-3 rounded border border-gray-600">
-                            <span className="font-semibold block text-gray-200">{step.title}</span>
-                            <p className="text-gray-300 mt-0.5">{step.explanation}</p>
-                            {step.code && (
-                              <pre className="bg-black/80 p-2.5 rounded mt-2 overflow-x-auto text-green-400 font-mono text-xs border border-gray-800">
-                                <code>{step.code}</code>
-                              </pre>
-                            )}
-                          </div>
-                        ))}
+                      {/* Code Steps */}
+                      {comp.steps?.map((step: any, sIdx: number) => (
+                        <div key={sIdx} className="mt-3">
+                          <h5 className="text-xs font-semibold text-slate-200">{step.title}</h5>
+                          <p className="text-xs text-slate-400 mb-1">{step.explanation}</p>
+                          {step.code && (
+                            <pre className="bg-slate-900 text-green-400 text-xs p-3 rounded overflow-x-auto border border-slate-800">
+                              <code>{step.code}</code>
+                            </pre>
+                          )}
+                        </div>
+                      ))}
+
+                      {/* Action Buttons */}
+                      <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-slate-800">
+                        <button
+                          onClick={() => handleComponentAction(comp.name, "explain")}
+                          disabled={actionLoading[comp.name]}
+                          className="px-3 py-1 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 transition"
+                        >
+                          [ Explain ]
+                        </button>
+                        <button
+                          onClick={() => handleComponentAction(comp.name, "breakdown")}
+                          disabled={actionLoading[comp.name]}
+                          className="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-500 text-white rounded font-medium transition"
+                        >
+                          [ Break Down ]
+                        </button>
+                        <button
+                          onClick={() => handleComponentAction(comp.name, "show_code")}
+                          disabled={actionLoading[comp.name]}
+                          className="px-3 py-1 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 transition"
+                        >
+                          [ Show Code ]
+                        </button>
+                        <button
+                          onClick={() => handleComponentAction(comp.name, "next_step")}
+                          disabled={actionLoading[comp.name]}
+                          className="px-3 py-1 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 transition"
+                        >
+                          [ Next Step ]
+                        </button>
                       </div>
+
+                      {/* Action Loading Status */}
+                      {actionLoading[comp.name] && (
+                        <p className="text-xs text-blue-400 animate-pulse mt-2">Generating breakdown details...</p>
+                      )}
+
+                      {/* Sub-Action Result */}
+                      {actionResults[comp.name] && !actionLoading[comp.name] && (
+                        <div className="mt-3 p-3 bg-slate-900 border border-slate-800 rounded">
+                          <h5 className="font-semibold text-xs text-green-400">{actionResults[comp.name].title}</h5>
+                          <p className="text-xs text-slate-300 my-1">{actionResults[comp.name].details}</p>
+
+                          {actionResults[comp.name].subComponents?.length > 0 && (
+                            <ul className="list-disc list-inside space-y-1 text-xs text-slate-400 mt-2">
+                              {actionResults[comp.name].subComponents.map((sub: string, idx: number) => (
+                                <li key={idx}>{sub}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
               </details>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </main>
   );
 }
