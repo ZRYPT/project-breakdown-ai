@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
     const response = await ai.models.generateContent({
       model: "gemini-3.6-flash",
-      contents: `Analyze the following project idea and provide a comprehensive software architecture breakdown including systems, components, educational metrics, development roadmap, technology recommendations, and a Supabase database architecture plan: "${project}".`,
+      contents: `Analyze the following project idea and provide a comprehensive software architecture breakdown including systems, components, educational metrics, development roadmap, technology recommendations, Supabase architecture, and an account/dashboard workflow featuring sample user projects with completion progress: "${project}".`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -32,18 +32,39 @@ export async function POST(request: Request) {
           properties: {
             name: { type: Type.STRING },
             description: { type: Type.STRING },
+            accountAndDashboard: {
+              type: Type.OBJECT,
+              properties: {
+                flow: {
+                  type: Type.ARRAY,
+                  items: { type: Type.STRING }, // e.g. ["Sign Up", "Log In", "Dashboard", "My Projects", "Project Breakdown"]
+                },
+                sampleProjects: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      title: { type: Type.STRING },
+                      progress: { type: Type.STRING }, // e.g. "42% complete"
+                    },
+                    required: ["title", "progress"],
+                  },
+                },
+              },
+              required: ["flow", "sampleProjects"],
+            },
             supabaseArchitecture: {
               type: Type.OBJECT,
               properties: {
                 handledEntities: {
                   type: Type.ARRAY,
-                  items: { type: Type.STRING }, // e.g. ["Users", "Projects", "Saved analyses", "Progress"]
+                  items: { type: Type.STRING },
                 },
                 suggestedTables: {
                   type: Type.ARRAY,
-                  items: { type: Type.STRING }, // e.g. ["users", "projects", "components", "steps", "progress"]
+                  items: { type: Type.STRING },
                 },
-                advice: { type: Type.STRING }, // e.g. "Don't add this during your first few days."
+                advice: { type: Type.STRING },
               },
               required: ["handledEntities", "suggestedTables", "advice"],
             },
@@ -114,6 +135,7 @@ export async function POST(request: Request) {
           required: [
             "name",
             "description",
+            "accountAndDashboard",
             "supabaseArchitecture",
             "technologyRecommendations",
             "systems",

@@ -80,6 +80,44 @@ export default function Home() {
             <h2 className="text-2xl font-bold text-blue-400">{projectData.name || "Architecture Overview"}</h2>
             <p className="text-slate-300">{projectData.description}</p>
 
+            {/* Phase 21: Add Accounts & Dashboard Section */}
+            {projectData.accountAndDashboard && (
+              <div className="bg-slate-900 border border-slate-800 rounded-lg p-6 space-y-4">
+                <h3 className="text-xl font-bold text-emerald-400">Add Accounts & Dashboard</h3>
+                
+                {/* Workflow steps */}
+                <div>
+                  <h4 className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-2">Authentication Flow:</h4>
+                  <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
+                    {projectData.accountAndDashboard.flow?.map((step: string, fIdx: number, arr: any[]) => (
+                      <div key={fIdx} className="flex items-center gap-2">
+                        <span className="bg-slate-950 border border-slate-800 px-3 py-1.5 rounded text-blue-300">
+                          {step}
+                        </span>
+                        {fIdx < arr.length - 1 && <span className="text-slate-500">↓</span>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Dashboard Sample Projects */}
+                <div className="pt-2">
+                  <h4 className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-2">The dashboard could show:</h4>
+                  <div className="bg-slate-950 border border-slate-800 rounded-lg p-4 space-y-3">
+                    <div className="text-sm font-bold text-slate-200">My Projects</div>
+                    <div className="space-y-2">
+                      {projectData.accountAndDashboard.sampleProjects?.map((proj: any, pIdx: number) => (
+                        <div key={pIdx} className="border border-dashed border-slate-700 rounded p-3 bg-slate-900/50 space-y-1">
+                          <div className="text-xs font-semibold text-blue-400">{proj.title}</div>
+                          <div className="text-xs text-slate-400">{proj.progress}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Technology Recommendations Section */}
             {projectData.technologyRecommendations && projectData.technologyRecommendations.length > 0 && (
               <div className="bg-slate-900 border border-slate-800 rounded-lg p-5 space-y-4">
@@ -102,7 +140,7 @@ export default function Home() {
               </div>
             )}
 
-            {/* Phase 20: Supabase Database Architecture Section */}
+            {/* Supabase Database Architecture Section */}
             {projectData.supabaseArchitecture && (
               <div className="bg-slate-900 border border-slate-800 rounded-lg p-6 space-y-4">
                 <h3 className="text-xl font-bold text-emerald-400">Add Supabase Database Architecture</h3>
