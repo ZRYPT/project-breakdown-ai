@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
     const response = await ai.models.generateContent({
       model: "gemini-3.6-flash",
-      contents: `Analyze the following project idea and provide a comprehensive software architecture breakdown including systems, components, educational metrics, a sequential development roadmap, and categorized technology recommendations with explanations: "${project}".`,
+      contents: `Analyze the following project idea and provide a comprehensive software architecture breakdown including systems, components, educational metrics, development roadmap, technology recommendations, and a Supabase database architecture plan: "${project}".`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -32,14 +32,29 @@ export async function POST(request: Request) {
           properties: {
             name: { type: Type.STRING },
             description: { type: Type.STRING },
+            supabaseArchitecture: {
+              type: Type.OBJECT,
+              properties: {
+                handledEntities: {
+                  type: Type.ARRAY,
+                  items: { type: Type.STRING }, // e.g. ["Users", "Projects", "Saved analyses", "Progress"]
+                },
+                suggestedTables: {
+                  type: Type.ARRAY,
+                  items: { type: Type.STRING }, // e.g. ["users", "projects", "components", "steps", "progress"]
+                },
+                advice: { type: Type.STRING }, // e.g. "Don't add this during your first few days."
+              },
+              required: ["handledEntities", "suggestedTables", "advice"],
+            },
             technologyRecommendations: {
               type: Type.ARRAY,
               items: {
                 type: Type.OBJECT,
                 properties: {
-                  category: { type: Type.STRING }, // e.g. "Frontend", "Backend", "Database"
-                  technology: { type: Type.STRING }, // e.g. "Next.js"
-                  reason: { type: Type.STRING }, // Why it is recommended
+                  category: { type: Type.STRING },
+                  technology: { type: Type.STRING },
+                  reason: { type: Type.STRING },
                 },
                 required: ["category", "technology", "reason"],
               },
@@ -99,6 +114,7 @@ export async function POST(request: Request) {
           required: [
             "name",
             "description",
+            "supabaseArchitecture",
             "technologyRecommendations",
             "systems",
             "developmentRoadmap",

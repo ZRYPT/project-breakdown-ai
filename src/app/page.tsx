@@ -80,7 +80,7 @@ export default function Home() {
             <h2 className="text-2xl font-bold text-blue-400">{projectData.name || "Architecture Overview"}</h2>
             <p className="text-slate-300">{projectData.description}</p>
 
-            {/* Phase 19: Technology Recommendations Section */}
+            {/* Technology Recommendations Section */}
             {projectData.technologyRecommendations && projectData.technologyRecommendations.length > 0 && (
               <div className="bg-slate-900 border border-slate-800 rounded-lg p-5 space-y-4">
                 <h3 className="text-lg font-bold text-emerald-400">Recommended Technology Stack</h3>
@@ -99,6 +99,40 @@ export default function Home() {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Phase 20: Supabase Database Architecture Section */}
+            {projectData.supabaseArchitecture && (
+              <div className="bg-slate-900 border border-slate-800 rounded-lg p-6 space-y-4">
+                <h3 className="text-xl font-bold text-emerald-400">Add Supabase Database Architecture</h3>
+                <p className="text-xs text-slate-400">Once the core application works, add a database.</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                  <div className="bg-slate-950 border border-slate-800 rounded p-4 space-y-2">
+                    <h4 className="text-xs uppercase tracking-wider font-bold text-slate-400">Supabase can handle:</h4>
+                    <ul className="text-xs text-slate-200 space-y-1 font-mono">
+                      {projectData.supabaseArchitecture.handledEntities?.map((entity: string, eIdx: number) => (
+                        <li key={eIdx}>• {entity}</li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="bg-slate-950 border border-slate-800 rounded p-4 space-y-2">
+                    <h4 className="text-xs uppercase tracking-wider font-bold text-slate-400">Your database might eventually look like:</h4>
+                    <ul className="text-xs text-emerald-400 space-y-1 font-mono">
+                      {projectData.supabaseArchitecture.suggestedTables?.map((table: string, tIdx: number) => (
+                        <li key={tIdx}>📁 {table}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                {projectData.supabaseArchitecture.advice && (
+                  <p className="text-xs text-amber-400 italic pt-2 border-t border-slate-800">
+                    💡 {projectData.supabaseArchitecture.advice}
+                  </p>
+                )}
               </div>
             )}
 
