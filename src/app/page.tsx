@@ -80,8 +80,8 @@ export default function Home() {
             <h2 className="text-2xl font-bold text-blue-400">{projectData.name || "Architecture Overview"}</h2>
             <p className="text-slate-300">{projectData.description}</p>
 
-            {/* Support both systems array or features list */}
-            {(projectData.systems || [{ name: "Core Features", description: "Identified platform features", components: projectData.features?.map((f: string) => ({ name: f, explanation: "Core module required for implementation.", technologies: ["TypeScript", "Next.js"] })) }]).map((sys: any, sysIdx: number) => (
+            {/* Systems & Components Loop */}
+            {projectData.systems?.map((sys: any, sysIdx: number) => (
               <details key={sysIdx} open className="bg-slate-900 border border-slate-800 rounded-lg p-4 mb-4">
                 <summary className="cursor-pointer font-bold text-lg text-emerald-400">
                   {sys.name} <span className="text-slate-400 text-sm font-normal">- {sys.description}</span>
@@ -168,6 +168,29 @@ export default function Home() {
                 </div>
               </details>
             ))}
+
+            {/* Development Roadmap / Build Order Section */}
+            {projectData.developmentRoadmap && projectData.developmentRoadmap.length > 0 && (
+              <div className="mt-8 bg-slate-900 border border-slate-800 rounded-lg p-6">
+                <h3 className="text-xl font-bold text-amber-400 mb-4">BUILD ORDER</h3>
+                <div className="space-y-4">
+                  {projectData.developmentRoadmap.map((step: any, idx: number) => (
+                    <div key={idx} className="border-l-2 border-blue-500 pl-4 py-1">
+                      <div className="text-xs font-bold text-blue-400 uppercase tracking-wide">
+                        STEP {step.stepNumber || idx + 1}
+                      </div>
+                      <h4 className="text-md font-semibold text-slate-100">{step.title}</h4>
+                      {step.description && (
+                        <p className="text-xs text-slate-400 mt-1">{step.description}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-slate-400 italic mt-6 pt-4 border-t border-slate-800">
+                  Now the user knows what to do next.
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>

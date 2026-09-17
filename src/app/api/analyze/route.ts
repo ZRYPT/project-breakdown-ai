@@ -15,9 +15,16 @@ export async function POST(request: Request) {
     const ai = new GoogleGenAI({ apiKey });
     const { project } = await request.json();
 
+    if (!project) {
+      return NextResponse.json(
+        { error: "Project description is required" },
+        { status: 400 }
+      );
+    }
+
     const response = await ai.models.generateContent({
       model: "gemini-3.6-flash",
-      contents: `Break down the software architecture for this project: ${project}`,
+      contents: `Analyze the following project idea and provide a comprehensive software architecture breakdown including systems, components, technologies, and a sequential step-by-step development roadmap (Build Order): "${project}".`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -51,8 +58,20 @@ export async function POST(request: Request) {
                 required: ["name", "description", "components"],
               },
             },
+            developmentRoadmap: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  stepNumber: { type: Type.NUMBER },
+                  title: { type: Type.STRING },
+                  description: { type: Type.STRING },
+                },
+                required: ["stepNumber", "title", "description"],
+              },
+            },
           },
-          required: ["name", "description", "systems"],
+          required: ["name", "description", "systems", "developmentRoadmap"],
         },
       },
     });
