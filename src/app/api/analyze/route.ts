@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
+import { SYSTEM_PROMPT } from "@/lib/prompts";
 
-// Handles browser requests (GET)
 export async function GET() {
   return NextResponse.json({ message: "API route is working!" });
 }
 
-// Handles data submission (POST)
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -18,9 +17,11 @@ export async function POST(request: Request) {
       );
     }
 
+    // SYSTEM_PROMPT is imported and ready for the AI call
     return NextResponse.json({
       success: true,
       message: `Analyzing project: ${project}`,
+      promptLoaded: true,
     });
   } catch (error) {
     return NextResponse.json(
