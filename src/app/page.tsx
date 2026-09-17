@@ -21,8 +21,6 @@ export default function Home() {
       });
 
       const data = await res.json();
-      console.log("Analyze API Response:", data);
-
       if (data.success && data.data) {
         setProjectData(data.data);
       } else {
@@ -65,7 +63,7 @@ export default function Home() {
             type="text"
             value={projectInput}
             onChange={(e) => setProjectInput(e.target.value)}
-            placeholder="Enter project idea..."
+            placeholder="Enter project idea or feature description..."
             className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-slate-100 focus:outline-none focus:border-blue-500"
           />
           <button
@@ -79,10 +77,11 @@ export default function Home() {
 
         {projectData && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-blue-400">{projectData.name || "Project Architecture"}</h2>
+            <h2 className="text-2xl font-bold text-blue-400">{projectData.name || "Architecture Overview"}</h2>
             <p className="text-slate-300">{projectData.description}</p>
 
-            {projectData.systems?.map((sys: any, sysIdx: number) => (
+            {/* Support both systems array or features list */}
+            {(projectData.systems || [{ name: "Core Features", description: "Identified platform features", components: projectData.features?.map((f: string) => ({ name: f, explanation: "Core module required for implementation.", technologies: ["TypeScript", "Next.js"] })) }]).map((sys: any, sysIdx: number) => (
               <details key={sysIdx} open className="bg-slate-900 border border-slate-800 rounded-lg p-4 mb-4">
                 <summary className="cursor-pointer font-bold text-lg text-emerald-400">
                   {sys.name} <span className="text-slate-400 text-sm font-normal">- {sys.description}</span>
@@ -94,7 +93,6 @@ export default function Home() {
                       <h4 className="text-md font-bold text-amber-400">{comp.name}</h4>
                       <p className="text-xs text-slate-300 my-1">{comp.explanation}</p>
 
-                      {/* Tech Tags */}
                       <div className="flex flex-wrap gap-2 my-2">
                         {comp.technologies?.map((tech: string, tIdx: number) => (
                           <span key={tIdx} className="bg-slate-800 text-blue-300 text-xs px-2 py-0.5 rounded">
@@ -103,7 +101,6 @@ export default function Home() {
                         ))}
                       </div>
 
-                      {/* Action Buttons */}
                       <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-slate-800">
                         <button
                           onClick={() => handleComponentAction(comp.name, "explain")}
@@ -126,25 +123,14 @@ export default function Home() {
                         >
                           [ Show Code ]
                         </button>
-                        <button
-                          onClick={() => handleComponentAction(comp.name, "next_step")}
-                          disabled={actionLoading[comp.name]}
-                          className="px-3 py-1 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 transition"
-                        >
-                          [ Next Step ]
-                        </button>
                       </div>
 
-                      {/* Action Loading Status */}
                       {actionLoading[comp.name] && (
-                        <p className="text-xs text-blue-400 animate-pulse mt-2">Generating breakdown details...</p>
+                        <p className="text-xs text-blue-400 animate-pulse mt-2">Generating details...</p>
                       )}
 
-                      {/* Action Output Block */}
                       {actionResults[comp.name] && !actionLoading[comp.name] && (
                         <div className="mt-4 p-4 bg-slate-900 border border-slate-800 rounded-lg space-y-4 text-slate-200">
-                          
-                          {/* Phase 14 Explanation Output */}
                           {actionResults[comp.name].whatIsIt && (
                             <div className="space-y-3">
                               <div>
@@ -157,35 +143,9 @@ export default function Home() {
                                   <p className="text-xs text-slate-300">{actionResults[comp.name].whyDoWeNeedIt}</p>
                                 </div>
                               )}
-                              {actionResults[comp.name].howDoesItWork?.length > 0 && (
-                                <div>
-                                  <h5 className="font-bold text-slate-100 text-sm mb-1">How does it work?</h5>
-                                  <ol className="list-decimal list-inside text-xs text-slate-300 space-y-1">
-                                    {actionResults[comp.name].howDoesItWork.map((step: string, idx: number) => (
-                                      <li key={idx}>{step.replace(/^\d+\.\s*/, "")}</li>
-                                    ))}
-                                  </ol>
-                                </div>
-                              )}
-                              <div className="pt-3 border-t border-slate-800 text-xs text-slate-400 space-y-1">
-                                {actionResults[comp.name].difficulty && (
-                                  <p><strong className="text-slate-200">Difficulty:</strong> {actionResults[comp.name].difficulty}</p>
-                                )}
-                                {actionResults[comp.name].prerequisites?.length > 0 && (
-                                  <div>
-                                    <strong className="text-slate-200">Prerequisites:</strong>
-                                    <ul className="list-disc list-inside ml-2">
-                                      {actionResults[comp.name].prerequisites.map((item: string, idx: number) => (
-                                        <li key={idx}>{item}</li>
-                                      ))}
-                                    </ul>
-                                  </div>
-                                )}
-                              </div>
                             </div>
                           )}
 
-                          {/* Phase 15 Show Code Output */}
                           {actionResults[comp.name].steps?.length > 0 && (
                             <div className="space-y-6">
                               {actionResults[comp.name].steps.map((step: any, sIdx: number) => (
@@ -194,29 +154,13 @@ export default function Home() {
                                     STEP {step.stepNumber || sIdx + 1}
                                   </div>
                                   <p className="text-xs font-medium text-slate-200">{step.title}</p>
-                                  {step.explanation && (
-                                    <p className="text-xs text-slate-400">{step.explanation}</p>
-                                  )}
                                   <pre className="bg-slate-950 text-emerald-400 text-xs p-3 rounded overflow-x-auto border border-slate-800 font-mono">
                                     <code>{step.code}</code>
                                   </pre>
-                                  {sIdx < actionResults[comp.name].steps.length - 1 && (
-                                    <div className="text-center text-slate-600 text-sm py-1">↓</div>
-                                  )}
                                 </div>
                               ))}
-
-                              <div className="pt-4 border-t border-slate-800 space-y-2">
-                                <button
-                                  onClick={() => handleComponentAction(comp.name, "explain")}
-                                  className="w-full text-center text-xs text-slate-400 hover:text-slate-200 bg-slate-950 hover:bg-slate-800 border border-slate-800 py-2 rounded-md transition"
-                                >
-                                  Explain this code
-                                </button>
-                              </div>
                             </div>
                           )}
-
                         </div>
                       )}
                     </div>
