@@ -101,6 +101,36 @@ export default function Home() {
                         ))}
                       </div>
 
+                      {/* Phase 18: Difficulty, Prerequisites & Learning Time */}
+                      <div className="mt-4 pt-3 border-t border-slate-800 space-y-2 text-xs bg-slate-900/50 p-3 rounded">
+                        {comp.difficulty && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-slate-400 font-semibold">Difficulty:</span>
+                            <span className="text-amber-400 font-bold tracking-widest">{comp.difficulty}</span>
+                          </div>
+                        )}
+
+                        {comp.prerequisites && comp.prerequisites.length > 0 && (
+                          <div>
+                            <span className="text-slate-400 font-semibold">Prerequisites:</span>
+                            <ul className="text-slate-300 mt-1 space-y-0.5">
+                              {comp.prerequisites.map((req: string, rIdx: number) => (
+                                <li key={rIdx} className="flex items-center gap-1.5">
+                                  <span className="text-emerald-400">✓</span> {req}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {comp.estimatedLearningTime && (
+                          <div className="flex items-center gap-2 pt-1">
+                            <span className="text-slate-400 font-semibold">Estimated learning:</span>
+                            <span className="text-slate-200">{comp.estimatedLearningTime}</span>
+                          </div>
+                        )}
+                      </div>
+
                       <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-slate-800">
                         <button
                           onClick={() => handleComponentAction(comp.name, "explain")}
@@ -186,9 +216,6 @@ export default function Home() {
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-slate-400 italic mt-6 pt-4 border-t border-slate-800">
-                  Now the user knows what to do next.
-                </p>
               </div>
             )}
           </div>

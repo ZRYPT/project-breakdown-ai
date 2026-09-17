@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
     const response = await ai.models.generateContent({
       model: "gemini-3.6-flash",
-      contents: `Analyze the following project idea and provide a comprehensive software architecture breakdown including systems, components, technologies, and a sequential step-by-step development roadmap (Build Order): "${project}".`,
+      contents: `Analyze the following project idea and provide a comprehensive software architecture breakdown including systems, components, technologies, educational difficulty, prerequisites, estimated learning time, and a sequential development roadmap: "${project}".`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -50,8 +50,21 @@ export async function POST(request: Request) {
                           type: Type.ARRAY,
                           items: { type: Type.STRING },
                         },
+                        difficulty: { type: Type.STRING }, // e.g. "★★★★☆" or "Medium"
+                        prerequisites: {
+                          type: Type.ARRAY,
+                          items: { type: Type.STRING },
+                        },
+                        estimatedLearningTime: { type: Type.STRING },
                       },
-                      required: ["name", "explanation", "technologies"],
+                      required: [
+                        "name",
+                        "explanation",
+                        "technologies",
+                        "difficulty",
+                        "prerequisites",
+                        "estimatedLearningTime",
+                      ],
                     },
                   },
                 },
